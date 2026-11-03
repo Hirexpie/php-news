@@ -15,24 +15,12 @@ class AuthController extends Controller
     }
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'login' => 'required|string|max:255',
-            'password' => 'required|string|min:8',
-        ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+        
         return $this->authService->register($request->login, $request->password);
     }
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'login' => 'required|string|max:255',
-            'password' => 'required|string|min:8',
-        ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+       
         return $this->authService->login($request->login, $request->password);
     }
    

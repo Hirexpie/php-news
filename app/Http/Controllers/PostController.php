@@ -20,20 +20,12 @@ class PostController extends Controller
         $this->postService = $postService;
     }
     public function create(Request $req) {
-        $validator = Validator::make($req->all(), [
-            'title' => 'required|string|max:255',
-            'desc' => 'required|string',
-        ]);
-        
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
         try {
             $user = JWTAuth::parseToken()->authenticate();
         } catch (JWTException $e) {
             return response()->json(['error' => 'Токен недействителен или отсутствует'], 401);
         }
-        return $this->postService->create($req->title, $req->desc, $user->id);
+        return $this->postService->create($req, $user->id);
     }
 
     public function delete(Request $req, string $id) {
@@ -54,17 +46,8 @@ class PostController extends Controller
             return response()->json(['error' => 'Токен недействителен или отсутствует'], 401);
         }
 
-        $validator = Validator::make($req->all(), [
-            'title' => 'required|string|max:255',
-            'desc' => 'required|string',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-
-        return $this->update($req->title, $req->desc, $id, $user->id);
+        return $this->postService->update($req, $id, $user->id);
     }
 
     public function getById(Request $req, string $id) {

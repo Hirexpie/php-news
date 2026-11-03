@@ -1,6 +1,8 @@
 <?php 
 
 namespace App\Http\Services;
+
+use App\Http\Validator\PostValidator;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,12 +14,20 @@ use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\title;
 
 class PostService {
-    public function create(string $title, string $desc, string $user_id) {
+    private PostValidator $postValidator;
+     public function __construct()
+    {
+        $this->postValidator = new PostValidator();
+    }
+    public function create(Request $req, string $user_id) {
 
-       
+        $validate = $this->postValidator->CRUDValidate($req);
+        if ($validate !== null) {
+            return $validate;
+        }
         $news = Post::create([
-            'title' => $title,
-            'desc' => $desc,
+            'title' => $req->title,
+            'desc' => $req->desc,
             'user_id' => $user_id
         ]);
         return response()->json([
@@ -44,7 +54,12 @@ class PostService {
         ], 200);
     }
 
-    public function update(string $title, string $desc, string $id, string $user_id) {
+    public function update(Request $req, string $id, string $user_id) {
+        $validate = $this->postValidator->CRUDValidate($req);
+        if ($validate !== null) {
+            return $validate;
+        }
+        
         $post = Post::find($id);
         
         if (!$post) {
@@ -56,8 +71,8 @@ class PostService {
         }
 
 
-        $post->title = $title;
-        $post->desc = $desc;
+        $post->title = $req->title;
+        $post->desc = $req->desc;
         $post->save();
 
         return response()->json([
