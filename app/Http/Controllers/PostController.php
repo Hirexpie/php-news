@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PostRequest;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -19,7 +20,8 @@ class PostController extends Controller
     {
         $this->postService = $postService;
     }
-    public function create(Request $req) {
+    public function create(PostRequest $req) {
+        
         try {
             $user = JWTAuth::parseToken()->authenticate();
         } catch (JWTException $e) {
@@ -38,7 +40,7 @@ class PostController extends Controller
     }
 
 
-    public function update(Request $req, string $id) {
+    public function update(PostRequest $req, string $id) {
     
         try {
             $user = JWTAuth::parseToken()->authenticate();

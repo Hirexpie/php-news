@@ -2,46 +2,35 @@
 
 namespace App\Http\Services;
 
-use App\Http\Validator\AuthValidator;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth; 
-
+use App\Http\Requests\AuthRequest;
 
 class AuthService {
-    private AuthValidator $authValidator;
-    public function __construct()
-    {
-        $this->authValidator = new AuthValidator();
-    }
 
-    public function register(Request $req) {
-        $validate = $this->authValidator->singValidator($req);
-        if ($validate !== null) {
-            return $validate;
-        }
-        $userExists = User::where('name', $req->login)->exists();
+
+    public function register(AuthRequest $req) {
+        $validatedData = $req->validated();
+       
+        $userExists = User::where('name', $validatedData->login)->exists();
         if ($userExists) {
             return response()->json('логин или пароль не верны', 409);
         }
         $user = User::create([
-            'name' => $req->login,
-            'password_hash' => Hash::make($req->password),
+            'name' => $validatedData->login,
+            'password_hash' => Hash::make($validatedData->password),
         ]);
         return response()->json([
             'message' => 'Пользователь успешно зарегистрирован'
         ], 201);
     }
 
-    public function login(Request $req) {
-        $validate = $this->authValidator->singValidator($req);
-        if ($validate !== null) {
-            return $validate;
-        }
-        $user = User::where('name', $req->login)->first();
-        if (!$user || !Hash::check($req->password, $user->password_hash)) {
+    public function login(AuthRequest $req) {
+        $validatedData = $req->validated();
+        $user = User::where('name', $validatedData->login)->first();
+        if (!$user || !Hash::check($validatedData->password, $user->password_hash)) {
             return response()->json([
                 'error' => 'Неверный логин или пароль'
             ], 401);

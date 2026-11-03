@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class AuthRequest extends FormRequest
+{
+   
+    public function authorize(): bool
+    {
+        return false;
+    }
+
+    
+    public function rules(): array
+    {
+        return [
+            'login' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string', 'min:8'],
+        ];
+    }
+}

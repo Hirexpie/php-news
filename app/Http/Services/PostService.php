@@ -12,22 +12,15 @@ use App\Models\Post;
 use \Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Log;
 use function Laravel\Prompts\title;
+use App\Http\Requests\PostRequest;
 
 class PostService {
-    private PostValidator $postValidator;
-     public function __construct()
-    {
-        $this->postValidator = new PostValidator();
-    }
-    public function create(Request $req, string $user_id) {
-
-        $validate = $this->postValidator->CRUDValidate($req);
-        if ($validate !== null) {
-            return $validate;
-        }
+   
+    public function create(PostRequest $req, string $user_id) {
+        $validatedData = $req->validated();
         $news = Post::create([
-            'title' => $req->title,
-            'desc' => $req->desc,
+            'title' => $validatedData->title,
+            'desc' => $validatedData->desc,
             'user_id' => $user_id
         ]);
         return response()->json([
@@ -54,11 +47,9 @@ class PostService {
         ], 200);
     }
 
-    public function update(Request $req, string $id, string $user_id) {
-        $validate = $this->postValidator->CRUDValidate($req);
-        if ($validate !== null) {
-            return $validate;
-        }
+    public function update(PostRequest $req, string $id, string $user_id) {
+        $validatedData = $req->validated();
+        
         
         $post = Post::find($id);
         
@@ -71,8 +62,8 @@ class PostService {
         }
 
 
-        $post->title = $req->title;
-        $post->desc = $req->desc;
+        $post->title = $validatedData->title;
+        $post->desc = $validatedData->desc;
         $post->save();
 
         return response()->json([
