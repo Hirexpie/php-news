@@ -2,100 +2,80 @@
 
 namespace App\Http\Services;
 
-use App\Http\Validator\PostValidator;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth; 
+use App\Http\Exceptions\BadRequestException;
+use App\Http\Exceptions\ForbiddenException;
+use App\Http\Exceptions\NotFoundException;
 use App\Models\Post;
-use \Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Support\Facades\Log;
-use function Laravel\Prompts\title;
 use App\Http\Requests\PostRequest;
+
 
 class PostService {
    
-    public function create(PostRequest $req, string $user_id) {
-        $validatedData = $req->validated();
+    public function create(array $validatedData, string $user_id) {
         $news = Post::create([
-            'title' => $validatedData->title,
-            'desc' => $validatedData->desc,
+            'title' => $validatedData['title'],
+            'desc' => $validatedData['desc'],
             'user_id' => $user_id
         ]);
-        return response()->json([
-            'message' => 'Запись успешно создана',
-            'data'    => $news
-        ], 201);
+        return $news;
     }
 
     public function delete(string $id, string $user_id) {
         $post = Post::find($id);
         
         if (!$post) {
-            return response()->json(['error' => 'Пост не найден'], 404);
+            throw new NotFoundException('Пост не найден');
         }
 
         if ($user_id != $post->user_id) {
-            return response()->json(['error' => 'У вас нет доступа'], 403);
+            throw new ForbiddenException('У вас нет доступа');
         }
 
         $post->delete(); 
 
-        return response()->json([
-            'message' => 'Пост успешно удален'
-        ], 200);
+      
     }
 
-    public function update(PostRequest $req, string $id, string $user_id) {
-        $validatedData = $req->validated();
+    public function update(array $validatedData, string $id, string $user_id) {
         
         
         $post = Post::find($id);
         
         if (!$post) {
-            return response()->json(['error' => 'Пост не найден'], 404);
+            throw new NotFoundException('Пост не найден');
         }
 
-        if ($user_id !== $post->user_id) {
-            return response()->json(['error' => 'У вас нет доступа'], 403);
+        if ($user_id != $post->user_id) {
+            throw new ForbiddenException('У вас нет доступа');
         }
 
-
-        $post->title = $validatedData->title;
-        $post->desc = $validatedData->desc;
+        $post->title = $validatedData['title'];
+        $post->desc = $validatedData['desc'];
         $post->save();
-
-        return response()->json([
-            'message' => 'Пост успешно обновлен',
-            'data' => $post
-        ], 200);
+        return $post;
+       
     }
 
     public function getById(string $id) {
         $post = Post::find($id);
         if (!$post) {
-            abort(404, 'Пост не найден');
+            throw new NotFoundException('Пост не найден');
         }
-        return response()->json([
-            'data' => $post
-        ], 200);
+        return $post;
+      
     }
 
     public function getAll(int $countItem, int $page) {
         $pageIndex = $page - 1;
         
         if ($pageIndex < 0) {
-            return response()->json([
-                'error' => 'не правельна указана стрнаница'
-            ], 400);
+            throw new BadRequestException("не правельна указана стрнаница");
         }
         $posts = Post::latest()->skip($countItem * $pageIndex)->take($countItem)->get();
         if (!$posts) {
-            abort(404, 'Пост не найден');
+            throw new NotFoundException("Посты не найденны");
         }
-        return response()->json([
-            'data' => $posts
-        ], 200);
+        return $posts;
+      
     }
 }

@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Exceptions\ApiRequestException;
+use App\Http\Requests\CheckRequest;
 use App\Http\Requests\PostRequest;
-use App\Models\Post;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use \Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Support\Facades\Log;
 use App\Http\Services\PostService;
-
-use function Laravel\Prompts\title;
+use Exception;
 
 class PostController extends Controller
 {
@@ -21,45 +19,73 @@ class PostController extends Controller
         $this->postService = $postService;
     }
     public function create(PostRequest $req) {
+        $validatedData = $req->validated();
         
-        try {
-            $user = JWTAuth::parseToken()->authenticate();
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Токен недействителен или отсутствует'], 401);
-        }
-        return $this->postService->create($req, $user->id);
+
+        $news = $this->postService->create($validatedData, $req->user()->id);
+
+        return response()->json([
+            'message' => 'Запись успешно создана',
+            'data'    => $news
+        ], 201);
     }
 
-    public function delete(Request $req, string $id) {
+    public function delete(CheckRequest $req, string $id) {
+
+
         try {
-            $user = JWTAuth::parseToken()->authenticate();
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Токен недействителен или отсутствует'], 401);
+            $this->postService->delete($id, $req->user()->id);
+            return response()->json([
+                'message' => 'Пост успешно удален'
+            ], 200);
         }
-        return $this->postService->delete($id, $user->id);
+        catch (ApiRequestException $e) {
+            return response()->json(['error' => $e->getMessage()], $e->status);
+        }
     }
 
 
     public function update(PostRequest $req, string $id) {
-    
+        $validatedData = $req->validated();
+
         try {
-            $user = JWTAuth::parseToken()->authenticate();
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Токен недействителен или отсутствует'], 401);
+            $post = $this->postService->update($validatedData, $id, $req->user()->id);
+            return response()->json([
+                'message' => 'Пост успешно обновлен',
+                'data' => $post
+            ], 200);
         }
-
-
-        return $this->postService->update($req, $id, $user->id);
+        catch (ApiRequestException $e) {
+            return response()->json(['error' => $e->getMessage()], $e->status);
+        }   
     }
 
     public function getById(Request $req, string $id) {
-        return $this->postService->getById($id);
+        try {
+            $post = $this->postService->getById($id);
+            return response()->json([
+                'data' => $post
+            ], 200);
+        }
+        catch (ApiRequestException $e) {
+            return response()->json(['error' => $e->getMessage()], $e->status);
+        }
     }
 
 
     public function getAll(Request $req) {
+        
         $countItem = 2;
         $page = $req->integer('page', 1) - 1;
-        return $this->postService->getAll($countItem, $page);
+        try {
+            $posts = $this->postService->getAll($countItem, $page);
+
+            return response()->json([
+                'data' => $posts
+            ], 200);
+        }
+        catch (ApiRequestException $e) {
+            return response()->json(['error' => $e->getMessage()], $e->status);
+        }
     }
 }
