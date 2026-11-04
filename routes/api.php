@@ -21,8 +21,8 @@ Route::get('/post/{id}', [PostController::class, 'getById']);
 
 Route::middleware('auth:api')->group(function () {
     Route::post('/post', [PostController::class, 'create']);
-    Route::delete('/post/{id}', [PostController::class, 'delete']);
-    Route::put('/post/{id}', [PostController::class, 'update']);
+    Route::delete('/post/{post}', [PostController::class, 'delete']);
+    Route::put('/post/{post}', [PostController::class, 'update']);
 
     
     Route::get('/test', function () {

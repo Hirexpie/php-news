@@ -65,12 +65,11 @@ class PostService {
       
     }
 
-    public function getAll(int $countItem, int $pageIndex) {
-        Log::info($pageIndex);
-        if ($pageIndex < 0) {
+    public function getAll(int $countItem, int $page) {
+        if ($page < 0) {
             throw new BadRequestException("не правельна указана стрнаница");
         }
-        $posts = Post::latest()->skip($countItem * $pageIndex)->take($countItem)->get();
+        $posts = Post::latest()->paginate($countItem, ['*'], 'page', $page);
         if (!$posts) {
             throw new NotFoundException("Посты не найденны");
         }
