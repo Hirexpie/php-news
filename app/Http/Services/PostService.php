@@ -5,8 +5,8 @@ namespace App\Http\Services;
 use App\Http\Exceptions\BadRequestException;
 use App\Http\Exceptions\ForbiddenException;
 use App\Http\Exceptions\NotFoundException;
+use Illuminate\Support\Facades\Log;
 use App\Models\Post;
-use App\Http\Requests\PostRequest;
 
 
 class PostService {
@@ -65,9 +65,8 @@ class PostService {
       
     }
 
-    public function getAll(int $countItem, int $page) {
-        $pageIndex = $page - 1;
-        
+    public function getAll(int $countItem, int $pageIndex) {
+        Log::info($pageIndex);
         if ($pageIndex < 0) {
             throw new BadRequestException("не правельна указана стрнаница");
         }

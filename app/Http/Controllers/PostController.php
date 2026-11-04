@@ -6,8 +6,6 @@ use App\Http\Exceptions\ApiRequestException;
 use App\Http\Requests\CheckRequest;
 use App\Http\Requests\PostRequest;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use \Tymon\JWTAuth\Exceptions\JWTException;
 use App\Http\Services\PostService;
 use Exception;
 
